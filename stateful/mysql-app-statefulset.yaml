@@ -1,0 +1,54 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: mysql
+spec:
+  selector:
+    matchLabels:
+      application: mysql
+  serviceName: mysql
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        application: mysql
+    spec:
+      containers:
+      - image: mysql:5.6
+        name: mysql
+        env:
+        - name: MYSQL_ROOT_PASSWORD
+          value: password
+        ports:
+        - containerPort: 3306
+          name: mysql
+        volumeMounts:
+        - name: dbdata
+          mountPath: /var/lib/mysql
+  # as we increase the replicas of this statefulset, new PV and PVCs 
+  # get created for each of its child pod
+  volumeClaimTemplates:
+  - metadata:
+      name: dbdata
+    spec:
+      storageClassName: standard
+      accessModes: 
+        - "ReadWriteOnce"
+      resources:
+        requests:
+          storage: 1Gi
+
+# Can also be used by creating PVC manually
+#
+# ---
+# apiVersion: v1
+# kind: PersistentVolumeClaim
+# metadata:
+#   name: sample-pv-claim-1
+# spec:
+#   storageClassName: standard
+#   accessModes:
+#     - ReadWriteOnce
+#   resources:
+#     requests:
+#       storage: 1Gi
